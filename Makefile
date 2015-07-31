@@ -1,11 +1,10 @@
 export
 
-PHP = 5.6
+PHP ?= 5.6
 JOBS ?= 2
 PHP_MIRROR ?= http://us1.php.net/distributions/
 
-prefix ?= $(HOME)
-prefix += /job-$(TRAVIS_JOB_NUMBER)
+prefix ?= $(HOME)/job-$(TRAVIS_JOB_NUMBER)
 exec_prefix ?= $(prefix)
 bindir = $(exec_prefix)/bin
 srcdir := $(dir $(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST)))
