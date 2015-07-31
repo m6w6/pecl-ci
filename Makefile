@@ -23,7 +23,7 @@ PECL_SONAME ?= $(if $(shell echo $(PECL) | cut -d: -f2),$(shell echo $(PECL) | c
 PECL_VERSION ?= $(shell echo $(PECL) | cut -d: -f3 -s)
 PECL_INI = $(with_config_file_scan_dir)/pecl.ini
 
-PHP_VERSION ?= $(shell test -e $(srcdir)/php-versions.json && cat $(srcdir)/php-versions.json | /usr/bin/php $(srcdir)/php-version.php $(PHP))
+PHP_VERSION ?= $(shell test -e $(srcdir)/php-versions.json && cat $(srcdir)/php-versions.json | $(srcdir)/php-version.php $(PHP))
 
 .PHONY: all php check clean reconf pecl ext test
 .SUFFIXES:
@@ -44,7 +44,7 @@ reconf: check $(srcdir)/php-$(PHP_VERSION)/configure
 php: check $(bindir)/php
 
 $(srcdir)/php-versions.json: $(srcdir)/php-version.php
-	curl -Sso $@ http://php.net/releases/active.php
+	curl -Sso $@ "http://php.net/releases/index.php?json&version=5&max=-1"
 
 $(srcdir)/php-$(PHP_VERSION)/configure: | $(srcdir)/php-versions.json
 	curl -Ss $(PHP_MIRROR)/php-$(PHP_VERSION).tar.bz2 | tar xj -C $(srcdir)
@@ -92,6 +92,7 @@ pecl: pecl-check php $(extdir)/$(PECL_SONAME).so | $(PECL_INI)
 	grep -q extension=$(PECL_SONAME).so $(PECL_INI) || echo extension=$(PECL_SONAME).so >> $(PECL_INI)
 
 ext: pecl-check $(srcdir)/pecl-$(PECL_EXTENSION) pecl
+	$(srcdir)/check-packagexml.php package.xml
 
 test: php
 	REPORT_EXIT_STATUS=1 NO_INTERACTION=1 $(bindir)/php run-tests.php -p $(bindir)/php --show-diff tests
