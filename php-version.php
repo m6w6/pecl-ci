@@ -10,7 +10,7 @@ if (isset($versions[$version])) {
 	exit;
 }
 
-$by_minor = [];
+$by_minor = array();
 # build the tree of latest versions per minor
 foreach (array_keys((array) $versions) as $release) {
 	list($major, $minor, $patch) = explode(".", $release);
