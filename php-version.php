@@ -7,4 +7,6 @@ list($major) = explode(".", $version, 2);
 
 if (isset($versions[$major][$version])) {
 	printf("%s\n", $versions[$major][$version]["version"]);
+} else {
+	printf("%s\n", $version);
 }
