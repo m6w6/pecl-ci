@@ -95,4 +95,4 @@ ext: pecl-check $(srcdir)/pecl-$(PECL_EXTENSION) pecl
 	$(srcdir)/check-packagexml.php package.xml
 
 test: php
-	REPORT_EXIT_STATUS=1 $(bindir)/php run-tests.php -q -p $(bindir)/php --set-timeout 180 --show-diff tests
+	REPORT_EXIT_STATUS=1 $(bindir)/php run-tests.php -q -p $(bindir)/php --set-timeout 300 --show-diff tests
