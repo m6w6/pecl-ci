@@ -4,7 +4,11 @@ PHP ?= 5.6
 JOBS ?= 2
 PHP_MIRROR ?= http://us1.php.net/distributions/
 
+ifdef TRAVIS_JOB_NUMBER
 prefix ?= $(HOME)/job-$(TRAVIS_JOB_NUMBER)
+else
+prefix ?= $(HOME)
+endif
 exec_prefix ?= $(prefix)
 bindir = $(exec_prefix)/bin
 srcdir := $(dir $(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST)))
@@ -25,22 +29,26 @@ PECL_INI = $(with_config_file_scan_dir)/pecl.ini
 
 PHP_VERSION ?= $(shell test -e $(srcdir)/php-versions.json && cat $(srcdir)/php-versions.json | $(srcdir)/php-version.php $(PHP))
 
-.PHONY: all php check clean reconf pecl ext test
 .SUFFIXES:
 
+.PHONY: all
 all: php
 
 ## -- PHP
 
+.PHONY: clean
 clean:
-	@if test -d $(srcdir)/php-$(PHP_VERSION); then cd $(srcdir)/php-$(PHP_VERSION); make distclean || true; done
+	@if test -d $(srcdir)/php-$(PHP_VERSION); then cd $(srcdir)/php-$(PHP_VERSION); make distclean || true; fi
 
+.PHONY: check
 check: $(srcdir)/php-versions.json
 	@if test -z "$(PHP)"; then echo "No php version specified, e.g. PHP=5.6"; exit 1; fi
 
+.PHONY: reconf
 reconf: check $(srcdir)/php-$(PHP_VERSION)/configure
 	cd $(srcdir)/php-$(PHP_VERSION) && ./configure -C --prefix=$(prefix)
 
+.PHONY: php
 php: check $(bindir)/php
 
 $(srcdir)/php-versions.json: $(srcdir)/php-version.php
@@ -53,18 +61,27 @@ $(srcdir)/php-$(PHP_VERSION)/Makefile: $(srcdir)/php-$(PHP_VERSION)/configure | 
 	cd $(srcdir)/php-$(PHP_VERSION) && ./configure -C --prefix=$(prefix)
 
 $(srcdir)/php-$(PHP_VERSION)/sapi/cli/php: $(srcdir)/php-$(PHP_VERSION)/Makefile | $(srcdir)/php-versions.json
-	cd $(srcdir)/php-$(PHP_VERSION) && make -s -j $(JOBS) V=0 || make
+	cd $(srcdir)/php-$(PHP_VERSION) && make -j $(JOBS) || make
 
 $(bindir)/php: $(srcdir)/php-$(PHP_VERSION)/sapi/cli/php | $(srcdir)/php-versions.json
-	cd $(srcdir)/php-$(PHP_VERSION) && make -s install V=0
+	cd $(srcdir)/php-$(PHP_VERSION) && make install
 
 $(with_config_file_scan_dir):
 	mkdir -p $@
 
 ## -- PECL
 
+.PHONY: pecl-check
 pecl-check:
 	@if test -z "$(PECL)"; then echo "No pecl extension specified, e.g. PECL=pecl_http:http"; exit 1; fi
+
+.PHONY: pecl-clean
+pecl-clean:
+	@if test -d $(srcdir)/pecl-$(PECL_EXTENSION); then cd $(srcdir)/pecl-$(PECL_EXTENSION); make distclean || true; fi
+
+.PHONY: pecl-rm
+pecl-rm:
+	rm -f $(extdir)/$(PECL_SONAME).so
 
 $(PECL_INI): | $(with_config_file_scan_dir)
 	touch $@
@@ -83,16 +100,25 @@ $(srcdir)/pecl-$(PECL_EXTENSION)/Makefile: $(srcdir)/pecl-$(PECL_EXTENSION)/conf
 	cd $(srcdir)/pecl-$(PECL_EXTENSION) && ./configure -C
 
 $(srcdir)/pecl-$(PECL_EXTENSION)/.libs/$(PECL_SONAME).so: $(srcdir)/pecl-$(PECL_EXTENSION)/Makefile
-	cd $(srcdir)/pecl-$(PECL_EXTENSION) && make -s -j $(JOBS) V=0 || make
+	cd $(srcdir)/pecl-$(PECL_EXTENSION) && make -j $(JOBS) || make
 	
 $(extdir)/$(PECL_SONAME).so: $(srcdir)/pecl-$(PECL_EXTENSION)/.libs/$(PECL_SONAME).so
-	cd $(srcdir)/pecl-$(PECL_EXTENSION) && make -s install V=0
-		
+	cd $(srcdir)/pecl-$(PECL_EXTENSION) && make install
+
+.PHONY: pecl
 pecl: pecl-check php $(extdir)/$(PECL_SONAME).so | $(PECL_INI)
 	grep -q extension=$(PECL_SONAME).so $(PECL_INI) || echo extension=$(PECL_SONAME).so >> $(PECL_INI)
 
+.PHONY: ext-clean
+ext-clean: pecl-clean
+
+.PHONY: ext-rm
+ext-rm: pecl-rm
+
+.PHONY: ext
 ext: pecl-check $(srcdir)/pecl-$(PECL_EXTENSION) pecl
 	$(srcdir)/check-packagexml.php package.xml
 
+.PHONY: php
 test: php
 	REPORT_EXIT_STATUS=1 $(bindir)/php run-tests.php -q -p $(bindir)/php --set-timeout 300 --show-diff tests
