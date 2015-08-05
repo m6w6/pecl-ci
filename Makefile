@@ -55,7 +55,11 @@ $(srcdir)/php-versions.json: $(srcdir)/php-version.php
 	curl -Sso $@ "http://php.net/releases/index.php?json&version=5&max=-1"
 
 $(srcdir)/php-$(PHP_VERSION)/configure: | $(srcdir)/php-versions.json
-	curl -Ss $(PHP_MIRROR)/php-$(PHP_VERSION).tar.bz2 | tar xj -C $(srcdir)
+	if test $(PHP_VERSION) = "master"; then \
+		cd $(srcdir) && git clone --depth 1 -b master https://github.com/php/php-src php-master \
+	else \
+		curl -Ss $(PHP_MIRROR)/php-$(PHP_VERSION).tar.bz2 | tar xj -C $(srcdir) \
+	fi
 
 $(srcdir)/php-$(PHP_VERSION)/Makefile: $(srcdir)/php-$(PHP_VERSION)/configure | $(srcdir)/php-versions.json
 	cd $(srcdir)/php-$(PHP_VERSION) && ./configure -C --prefix=$(prefix)

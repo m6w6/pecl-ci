@@ -34,7 +34,13 @@ if (isset($by_minor[$version])) {
 	case "5.5":
 		print("5.5.27\n");
 		break;
-	default:
+	case "5.6":
 		print("5.6.11\n");
+		break;
+	case "master":
+		print("master\n");
+		break;
+	default:
+		printf("%s\n", $version);
 	}
 }
