@@ -127,5 +127,5 @@ ext: pecl-check $(srcdir)/pecl-$(PECL_EXTENSION) pecl
 test: php
 	REPORT_EXIT_STATUS=1 $(bindir)/php run-tests.php -q -p $(bindir)/php --set-timeout 300 --show-diff tests
 
-%.ext.phar: ../%.ext.phar $(PECL_INI) php
-	$< --prefix=$(prefix) --ini=$(PECL_INI)
+pharext/%: $(PECL_INI) php | $(srcdir)/../%.ext.phar
+	for phar in $|; do $$phar --prefix=$(prefix) --ini=$(PECL_INI); done
