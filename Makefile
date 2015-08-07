@@ -128,4 +128,4 @@ test: php
 	REPORT_EXIT_STATUS=1 $(bindir)/php run-tests.php -q -p $(bindir)/php --set-timeout 300 --show-diff tests
 
 pharext/%: $(PECL_INI) php | $(srcdir)/../%.ext.phar
-	for phar in $|; do $$phar --prefix=$(prefix) --ini=$(PECL_INI); done
+	for phar in $|; do $(bindir)/php $$phar --prefix=$(prefix) --ini=$(PECL_INI); done
