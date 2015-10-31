@@ -33,7 +33,7 @@ which will generate the configuration for us:
     <?php
     
     # instantiate the generator
-    $gen = include "travis/pecl/gen_matrix.php";
+    $gen = include "travis/pecl/gen-matrix.php";
     
     # generate the matrix
     $env = $gen([
@@ -51,7 +51,7 @@ which will generate the configuration for us:
     
     # output the build matrix
     foreach ($env as $e) {
-      printf("  - %s\n", %e);
+      printf("  - %s\n", $e);
     }
     
     ?>
