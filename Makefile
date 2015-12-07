@@ -56,20 +56,20 @@ php: check $(bindir)/php
 $(PHP_VERSIONS_JSON): $(srcdir)/php-version.php
 	curl -Sso $@ "http://php.net/releases/index.php?json&version=$(PHP_VERSION_MAJOR)&max=-1"
 
-$(srcdir)/php-$(PHP_VERSION)/configure: | $(srcdir)/php-versions.json
+$(srcdir)/php-$(PHP_VERSION)/configure: | $(PHP_VERSIONS_JSON)
 	if test $(PHP_VERSION) = "master"; then \
 		cd $(srcdir) && git clone --depth 1 -b master https://github.com/php/php-src php-master && cd php-master && ./buildconf; \
 	else \
 		curl -Ss $(PHP_MIRROR)/php-$(PHP_VERSION).tar.bz2 | tar xj -C $(srcdir); \
 	fi
 
-$(srcdir)/php-$(PHP_VERSION)/Makefile: $(srcdir)/php-$(PHP_VERSION)/configure | $(srcdir)/php-versions.json
+$(srcdir)/php-$(PHP_VERSION)/Makefile: $(srcdir)/php-$(PHP_VERSION)/configure | $(PHP_VERSIONS_JSON)
 	cd $(srcdir)/php-$(PHP_VERSION) && ./configure -C --prefix=$(prefix)
 
-$(srcdir)/php-$(PHP_VERSION)/sapi/cli/php: $(srcdir)/php-$(PHP_VERSION)/Makefile | $(srcdir)/php-versions.json
+$(srcdir)/php-$(PHP_VERSION)/sapi/cli/php: $(srcdir)/php-$(PHP_VERSION)/Makefile | $(PHP_VERSIONS_JSON)
 	cd $(srcdir)/php-$(PHP_VERSION) && make -j $(JOBS) || make
 
-$(bindir)/php: $(srcdir)/php-$(PHP_VERSION)/sapi/cli/php | $(srcdir)/php-versions.json
+$(bindir)/php: $(srcdir)/php-$(PHP_VERSION)/sapi/cli/php | $(PHP_VERSIONS_JSON)
 	cd $(srcdir)/php-$(PHP_VERSION) && make install
 
 $(with_config_file_scan_dir):
