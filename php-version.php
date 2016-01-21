@@ -12,16 +12,17 @@ if (isset($versions[$version])) {
 
 $by_minor = array();
 # build the tree of latest versions per minor
-foreach (array_keys((array) $versions) as $release) {
-	list($major, $minor, $patch) = explode(".", $release);
-	if (isset($by_minor["$major.$minor"])) {
-		if (version_compare($release, $by_minor["$major.$minor"], "<")) {
-			continue;
+if (!empty($versions) && !isset($versions["error"])) {
+	foreach (array_keys((array) $versions) as $release) {
+		list($major, $minor, $patch) = explode(".", $release);
+		if (isset($by_minor["$major.$minor"])) {
+			if (version_compare($release, $by_minor["$major.$minor"], "<")) {
+				continue;
+			}
 		}
+		$by_minor["$major.$minor"] = $release;
 	}
-	$by_minor["$major.$minor"] = $release;
 }
-
 # check latest release
 if (isset($by_minor[$version])) {
 	printf("%s\n", $by_minor[$version]);
@@ -32,13 +33,13 @@ if (isset($by_minor[$version])) {
 		print("5.4.45\n");
 		break;
 	case "5.5":
-		print("5.5.30\n");
+		print("5.5.31\n");
 		break;
 	case "5.6":
-		print("5.6.16\n");
+		print("5.6.17\n");
 		break;
 	case "7.0":
-		printf("7.0.0\n");
+		printf("7.0.2\n");
 		break;
 	case "master":
 		print("master\n");
