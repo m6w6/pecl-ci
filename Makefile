@@ -59,7 +59,13 @@ reconf: check $(srcdir)/php-$(PHP_VERSION)/configure
 	cd $(srcdir)/php-$(PHP_VERSION) && ./configure -C --prefix=$(prefix)
 
 .PHONY: php
-php: check $(bindir)/php
+php: check $(bindir)/php | $(PECL_INI)
+	-for EXT_SONAME in $(extdir)/*.so; do \
+		EXT_SONAME=$$(basename $$EXT_SONAME); \
+		if ! grep -q extension=$$EXT_SONAME $(PECL_INI); then \
+			echo extension=$$EXT_SONAME >> $(PECL_INI); \
+		fi \
+	done
 
 $(PHP_VERSIONS_JSON): $(srcdir)/php-version.php
 	curl -Sso $@ "http://php.net/releases/index.php?json&version=$(PHP_VERSION_MAJOR)&max=-1"
