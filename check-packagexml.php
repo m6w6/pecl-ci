@@ -19,6 +19,13 @@ $pf = $factory->fromPackageFile($argv[1], PEAR_VALIDATE_NORMAL);
 
 if (PEAR::isError($pf)) {
 	fprintf(STDERR, "ERROR: %s\n", $pf->getMessage());
+	if (is_array($infos = $pf->getUserInfo())) {
+		foreach ($infos as $info) {
+			fprintf(STDERR, "       %s\n", $info["message"]);
+		}
+	} elseif (strlen($infos)) {
+		fprintf(STDERR, "       %s\n", $infos);
+	}
 	exit(1);
 }
 
