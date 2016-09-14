@@ -3,15 +3,19 @@ export
 PHP ?= 5.6
 JOBS ?= 2
 PHP_MIRROR ?= http://us1.php.net/distributions/
+TMPDIR ?= /tmp
+
+tmpnam := $(TMPDIR)/php-$(PHP)-$(shell env |grep -E '^with_|^enable_' | tr -c '[a-zA-Z_]' -)
+makdir := $(dir $(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST)))
 
 ifdef TRAVIS_JOB_NUMBER
 prefix ?= $(HOME)/job-$(TRAVIS_JOB_NUMBER)
 else
-prefix ?= $(HOME)
+prefix ?= $(tmpnam)
 endif
 exec_prefix ?= $(prefix)
 bindir = $(exec_prefix)/bin
-srcdir := $(dir $(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST)))
+srcdir := $(prefix)/src
 ifdef TRAVIS_BUILD_DIR
 curdir ?= $(TRAVIS_BUILD_DIR)
 else
@@ -37,7 +41,7 @@ PECL_DIR := $(if $(filter ext ext%, $(MAKECMDGOALS)), $(curdir), $(srcdir)/pecl-
 
 PHP_VERSION_MAJOR = $(firstword $(subst ., ,$(PHP)))
 PHP_VERSIONS_JSON = $(srcdir)/php-versions$(PHP_VERSION_MAJOR).json
-PHP_VERSION ?= $(shell test -e $(PHP_VERSIONS_JSON) && cat $(PHP_VERSIONS_JSON) | $(srcdir)/php-version.php $(PHP))
+PHP_VERSION ?= $(shell test -e $(PHP_VERSIONS_JSON) && cat $(PHP_VERSIONS_JSON) | $(makdir)/php-version.php $(PHP))
 
 .SUFFIXES:
 
@@ -67,7 +71,7 @@ php: check $(bindir)/php | $(PECL_INI)
 		fi \
 	done
 
-$(PHP_VERSIONS_JSON): $(srcdir)/php-version.php
+$(PHP_VERSIONS_JSON): $(makdir)/php-version.php | $(srcdir)
 	curl -Sso $@ "http://php.net/releases/index.php?json&version=$(PHP_VERSION_MAJOR)&max=-1"
 
 $(srcdir)/php-$(PHP_VERSION)/configure: | $(PHP_VERSIONS_JSON)
@@ -86,10 +90,7 @@ $(srcdir)/php-$(PHP_VERSION)/sapi/cli/php: $(srcdir)/php-$(PHP_VERSION)/Makefile
 $(bindir)/php: $(srcdir)/php-$(PHP_VERSION)/sapi/cli/php | $(PHP_VERSIONS_JSON)
 	cd $(srcdir)/php-$(PHP_VERSION) && make install
 
-$(with_config_file_scan_dir):
-	mkdir -p $@
-
-$(extdir):
+$(srcdir) $(extdir) $(with_config_file_scan_dir):
 	mkdir -p $@
 
 ## -- PECL
@@ -137,7 +138,7 @@ ext-rm: pecl-rm
 
 .PHONY: ext
 ext: pecl-check pecl
-	$(srcdir)/check-packagexml.php package.xml
+	$(makdir)/check-packagexml.php package.xml
 
 .PHONY: php
 test: php
