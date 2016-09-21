@@ -44,7 +44,7 @@ PECL_DIR := $(if $(filter ext ext%, $(MAKECMDGOALS)), $(curdir), $(srcdir)/pecl-
 PHP_RELEASES = $(srcdir)/releases.tsv
 PHP_VERSION ?= $(shell test -e $(PHP_RELEASES) && cat $(PHP_RELEASES) | awk -F "\t" '/^$(PHP)\t/{print $$2}')
 
-CPPCHECK ?= -v -j $(JOBS) --enable=warning,portability,style --error-exitcode=42 --suppressions-list=$(makdir)/cppcheck.suppressions -I.
+CPPCHECK ?= -v -j $(JOBS) --enable=portability,style --error-exitcode=42 --suppressions-list=$(makdir)/cppcheck.suppressions -I.
 
 .SUFFIXES:
 
