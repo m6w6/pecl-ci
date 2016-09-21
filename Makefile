@@ -39,9 +39,10 @@ PECL_VERSION ?= $(word 3,$(PECL_WORDS))
 PECL_INI = $(with_config_file_scan_dir)/pecl.ini
 PECL_DIR := $(if $(filter ext ext%, $(MAKECMDGOALS)), $(curdir), $(srcdir)/pecl-$(PECL_EXTENSION))
 
-PHP_VERSION_MAJOR = $(firstword $(subst ., ,$(PHP)))
-PHP_VERSIONS_JSON = $(srcdir)/php-versions$(PHP_VERSION_MAJOR).json
-PHP_VERSION ?= $(shell test -e $(PHP_VERSIONS_JSON) && cat $(PHP_VERSIONS_JSON) | $(makdir)/php-version.php $(PHP))
+#PHP_VERSION_MAJOR = $(firstword $(subst ., ,$(PHP)))
+
+PHP_RELEASES = $(srcdir)/releases.tsv
+PHP_VERSION ?= $(shell test -e $(PHP_RELEASES) && cat $(PHP_RELEASES) | awk -F "\t" '/^$(PHP)\t/{print $$2}')
 
 CPPCHECK ?= -v -j $(JOBS) --std=c89 --enable=warning,portability,style --error-exitcode=42 --suppressions-list=$(makdir)/cppcheck.suppressions -I.
 
@@ -50,6 +51,16 @@ CPPCHECK ?= -v -j $(JOBS) --std=c89 --enable=warning,portability,style --error-e
 .PHONY: all
 all: php
 
+.PHONY: versions
+versions: $(PHP_RELEASES)
+	grep "^$(PHP)" $<
+
+$(PHP_RELEASES): $(makdir)/php-version-url-dist.php $(makdir)/php-version-url-qa.php | $(srcdir)
+	printf "master\tmaster\tgit clone --depth 1 -b master https://github.com/php/php-src php-master && cd php-master && ./buildconf\n" >$@
+	curl -Ss "http://php.net/releases/index.php?json&version=7&max=-1" | $(makdir)/php-version-url-dist.php >>$@
+	curl -Ss "http://php.net/releases/index.php?json&version=5&max=-1" | $(makdir)/php-version-url-dist.php >>$@
+	curl -Ss "http://qa.php.net/api.php?type=qa-releases&format=json"  | $(makdir)/php-version-url-qa.php   >>$@
+
 ## -- PHP
 
 .PHONY: clean
@@ -57,7 +68,7 @@ clean:
 	@if test -d $(srcdir)/php-$(PHP_VERSION); then cd $(srcdir)/php-$(PHP_VERSION); make distclean || true; fi
 
 .PHONY: check
-check: $(PHP_VERSIONS_JSON)
+check: $(PHP_RELEASES)
 	@if test -z "$(PHP)"; then echo "No php version specified, e.g. PHP=5.6"; exit 1; fi
 
 .PHONY: reconf
@@ -73,23 +84,16 @@ php: check $(bindir)/php | $(PECL_INI)
 		fi \
 	done
 
-$(PHP_VERSIONS_JSON): $(makdir)/php-version.php | $(srcdir)
-	curl -Sso $@ "http://php.net/releases/index.php?json&version=$(PHP_VERSION_MAJOR)&max=-1"
+$(srcdir)/php-$(PHP_VERSION)/configure: | $(PHP_RELEASES)
+	cd $(srcdir) && awk -F "\t" '/^$(PHP)\t/{exit system($$3)}' <$|
 
-$(srcdir)/php-$(PHP_VERSION)/configure: | $(PHP_VERSIONS_JSON)
-	if test $(PHP_VERSION) = "master"; then \
-		cd $(srcdir) && git clone --depth 1 -b master https://github.com/php/php-src php-master && cd php-master && ./buildconf; \
-	else \
-		curl -Ss $(PHP_MIRROR)/php-$(PHP_VERSION).tar.bz2 | tar xj -C $(srcdir); \
-	fi
-
-$(srcdir)/php-$(PHP_VERSION)/Makefile: $(srcdir)/php-$(PHP_VERSION)/configure | $(PHP_VERSIONS_JSON)
+$(srcdir)/php-$(PHP_VERSION)/Makefile: $(srcdir)/php-$(PHP_VERSION)/configure | $(PHP_RELEASES)
 	cd $(srcdir)/php-$(PHP_VERSION) && ./configure --cache-file=config.cache --prefix=$(prefix)
 
-$(srcdir)/php-$(PHP_VERSION)/sapi/cli/php: $(srcdir)/php-$(PHP_VERSION)/Makefile | $(PHP_VERSIONS_JSON)
+$(srcdir)/php-$(PHP_VERSION)/sapi/cli/php: $(srcdir)/php-$(PHP_VERSION)/Makefile | $(PHP_RELEASES)
 	cd $(srcdir)/php-$(PHP_VERSION) && make -j $(JOBS) || make
 
-$(bindir)/php: $(srcdir)/php-$(PHP_VERSION)/sapi/cli/php | $(PHP_VERSIONS_JSON)
+$(bindir)/php: $(srcdir)/php-$(PHP_VERSION)/sapi/cli/php | $(PHP_RELEASES)
 	cd $(srcdir)/php-$(PHP_VERSION) && make install
 
 $(srcdir) $(extdir) $(with_config_file_scan_dir):
