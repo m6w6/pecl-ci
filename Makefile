@@ -43,6 +43,8 @@ PHP_VERSION_MAJOR = $(firstword $(subst ., ,$(PHP)))
 PHP_VERSIONS_JSON = $(srcdir)/php-versions$(PHP_VERSION_MAJOR).json
 PHP_VERSION ?= $(shell test -e $(PHP_VERSIONS_JSON) && cat $(PHP_VERSIONS_JSON) | $(makdir)/php-version.php $(PHP))
 
+CPPCHECK ?= -v -j $(JOBS) --std=c89 --enable=warning,portability,style --error-exitcode=42 --suppressions-list=$(makdir)/cppcheck.suppressions -I.
+
 .SUFFIXES:
 
 .PHONY: all
@@ -140,9 +142,13 @@ ext-rm: pecl-rm
 ext: pecl-check pecl
 	$(makdir)/check-packagexml.php package.xml
 
-.PHONY: php
+.PHONY: test
 test: php
 	REPORT_EXIT_STATUS=1 $(bindir)/php run-tests.php -q -p $(bindir)/php --set-timeout 300 --show-diff tests
+
+.PHONY: cppcheck
+cppcheck:
+	cppcheck $(CPPCHECK) $$(awk -F= '/^CPPFLAGS|^INCLUDES/{print $$2}' <Makefile) .
 
 pharext/%: $(PECL_INI) php | $(srcdir)/../%.ext.phar
 	for phar in $|; do $(bindir)/php $$phar --prefix=$(prefix) --ini=$(PECL_INI); done
