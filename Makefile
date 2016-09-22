@@ -44,7 +44,13 @@ PECL_DIR := $(if $(filter ext ext%, $(MAKECMDGOALS)), $(curdir), $(srcdir)/pecl-
 PHP_RELEASES = $(srcdir)/releases.tsv
 PHP_VERSION ?= $(shell test -e $(PHP_RELEASES) && cat $(PHP_RELEASES) | awk -F "\t" '/^$(PHP)\t/{print $$2}')
 
-CPPCHECK ?= -v -j $(JOBS) --enable=portability,style --error-exitcode=42 --suppressions-list=$(makdir)/cppcheck.suppressions -I.
+CPPCHECK_STD ?= c89
+CPPCHECK_ENABLE ?= portability,style
+CPPCHECK_EXITCODE ?= 42
+CPPCHECK_SUPPRESSIONS ?= $(makdir)/cppcheck.suppressions
+CPPCHECK_INCLUDES ?= -I. $(shell awk -F= '/^CPPFLAGS|^INCLUDES/{print $$2}' <Makefile)
+CPPCHECK_VERSION ?= 1.75
+CPPCHECK_ARGS ?= -v -j $(JOBS) --std=$(CPPCHECK_STD) --enable=$(CPPCHECK_ENABLE) --error-exitcode=$(CPPCHECK_EXITCODE) --suppressions-list=$(CPPCHECK_SUPPRESSIONS) $(CPPCHECK_INCLUDES)
 
 .SUFFIXES:
 
@@ -150,9 +156,17 @@ ext: pecl-check pecl
 test: php
 	REPORT_EXIT_STATUS=1 $(bindir)/php run-tests.php -q -p $(bindir)/php --set-timeout 300 --show-diff tests
 
-.PHONY: cppcheck
-cppcheck:
-	cppcheck $(CPPCHECK) $$(awk -F= '/^CPPFLAGS|^INCLUDES/{print $$2}' <Makefile) .
-
 pharext/%: $(PECL_INI) php | $(srcdir)/../%.ext.phar
 	for phar in $|; do $(bindir)/php $$phar --prefix=$(prefix) --ini=$(PECL_INI); done
+
+## -- CPPCHECK
+
+$(srcdir)/cppcheck-$(CPPCHECK_VERSION):
+	git clone github.com:danmar/cppcheck.git $@ && cd $@ && git checkout $(CPPCHECK_VERSION)
+
+$(srcdir)/cppcheck-$(CPPCHECK_VERSION)/cppcheck: | $(srcdir)/cppcheck-$(CPPCHECK_VERSION)
+	cd $| && make -j $(JOBS) cppcheck
+
+.PHONY: cppcheck
+cppcheck: | $(srcdir)/cppcheck-$(CPPCHECK_VERSION)/cppcheck
+	$| $(CPPCHECK_ARGS) .
