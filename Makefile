@@ -162,7 +162,7 @@ pharext/%: $(PECL_INI) php | $(srcdir)/../%.ext.phar
 ## -- CPPCHECK
 
 $(srcdir)/cppcheck-$(CPPCHECK_VERSION):
-	git clone github.com:danmar/cppcheck.git $@ && cd $@ && git checkout $(CPPCHECK_VERSION)
+	git clone https://github.com/danmar/cppcheck.git $@ && cd $@ && git checkout $(CPPCHECK_VERSION)
 
 $(srcdir)/cppcheck-$(CPPCHECK_VERSION)/cppcheck: | $(srcdir)/cppcheck-$(CPPCHECK_VERSION)
 	cd $| && make -j $(JOBS) cppcheck
