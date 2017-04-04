@@ -42,7 +42,7 @@ PECL_DIR := $(if $(filter ext ext%, $(MAKECMDGOALS)), $(curdir), $(srcdir)/pecl-
 #PHP_VERSION_MAJOR = $(firstword $(subst ., ,$(PHP)))
 
 PHP_RELEASES = $(srcdir)/releases.tsv
-PHP_VERSION ?= $(shell test -e $(PHP_RELEASES) && cat $(PHP_RELEASES) | awk -F "\t" '/^$(PHP)\t/{print $$2}')
+PHP_VERSION ?= $(shell test -e $(PHP_RELEASES) && cat $(PHP_RELEASES) | awk -F "\t" '/^$(PHP)\t/{print $$2; exit}')
 
 CPPCHECK_STD ?= c89
 CPPCHECK_ENABLE ?= portability,style
