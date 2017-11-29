@@ -2,7 +2,7 @@ export
 
 PHP ?= 5.6
 JOBS ?= 2
-PHP_MIRROR ?= http://us1.php.net/distributions/
+PHP_MIRROR ?= http://us2.php.net/distributions/
 TMPDIR ?= /tmp
 
 tmpnam := $(TMPDIR)/php-$(PHP)-$(shell env |grep -E '^with_|^enable_' | tr -c '[a-zA-Z_]' -)
