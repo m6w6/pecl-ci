@@ -123,8 +123,12 @@ $(PECL_INI): | $(with_config_file_scan_dir)
 	touch $@
 
 $(PECL_DIR)/config.m4:
-	mkdir -p $(PECL_DIR)
-	curl -Ss $(PECL_MIRROR)/$(PECL_EXTENSION)$(if $(PECL_VERSION),/$(PECL_VERSION)) | tar xz --strip-components 1 -C $(PECL_DIR)
+	if test -z "$(PECL_VERSION)" || expr + "$(PECL_VERSION)" : "[[:digit:]]\.[[:digit:]]"; then \
+		mkdir -p $(PECL_DIR); \
+		curl -Ss $(PECL_MIRROR)/$(PECL_EXTENSION)$(if $(PECL_VERSION),/$(PECL_VERSION)) | tar xz --strip-components 1 -C $(PECL_DIR); \
+	else \
+		git clone -b $(PECL_VERSION) $$(dirname $$(git remote get-url $$(git remote)))/$(PECL_EXTENSION) $(PECL_DIR); \
+	fi
 
 $(PECL_DIR)/configure: $(PECL_DIR)/config.m4
 	cd $(PECL_DIR) && $(bindir)/phpize
