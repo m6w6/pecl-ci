@@ -4,6 +4,12 @@
 
 $versions = @json_decode(stream_get_contents(STDIN), 1);
 
+
+
+
+
+
+
 $by_minor = array();
 # build the tree of latest versions per minor
 if (!empty($versions) && !isset($versions["error"]) && isset($versions["releases"])) {

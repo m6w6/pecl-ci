@@ -1,8 +1,14 @@
 #!/usr/bin/env php
 <?php
 
+
 $versions = @json_decode(stream_get_contents(STDIN), 1);
 $mirror = getenv("PHP_MIRROR");
+
+
+
+
+
 
 $by_minor = array();
 # build the tree of latest versions per minor
@@ -19,5 +25,6 @@ if (!empty($versions) && !isset($versions["error"])) {
 }
 
 foreach ($by_minor as $v => $r) {
-	printf("%s\t%s\tcurl -sS %s%s | tar xj\n", $v, $r, $mirror, $versions[$r]["source"][0]["filename"]);
+	printf("%s\t%s\tcurl -sS %s%s | tar xj\n", $v, $r, $mirror,
+			$versions[$r]["source"][0]["filename"]);
 }
