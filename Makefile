@@ -49,7 +49,7 @@ CPPCHECK_ENABLE ?= portability,style
 CPPCHECK_EXITCODE ?= 42
 CPPCHECK_SUPPRESSIONS ?= $(makdir)/cppcheck.suppressions
 CPPCHECK_INCLUDES ?= -I. $(shell test -f Makefile && awk -F= '/^CPPFLAGS|^INCLUDES/{print $$2}' <Makefile)
-CPPCHECK_VERSION ?= 1.75
+CPPCHECK_VERSION ?= 1.82
 CPPCHECK_ARGS ?= -v -j $(JOBS) --std=$(CPPCHECK_STD) --enable=$(CPPCHECK_ENABLE) --error-exitcode=$(CPPCHECK_EXITCODE) --suppressions-list=$(CPPCHECK_SUPPRESSIONS) $(CPPCHECK_INCLUDES)
 
 .SUFFIXES:
