@@ -8,7 +8,7 @@ TMPDIR ?= /tmp
 makdir := $(dir $(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST)))
 
 ifdef TRAVIS
-prefix ?= $(HOME)/build/php-$(PHP)-$(shell env |grep -E '^with_|^enable_' | tr -c '[a-zA-Z_]' -)
+prefix ?= $(HOME)/cache/php-$(PHP)-$(shell env |grep -E '^with_|^enable_' | tr -c '[a-zA-Z_]' -)
 else
 prefix ?= $(TMPDIR)/php-$(PHP)-$(shell env |grep -E '^with_|^enable_' | tr -c '[a-zA-Z_]' -)
 endif
