@@ -1,11 +1,6 @@
 <?php
 
 return function() {
-	$process = function($apc, $key, $values = ["no", "yes"]) {
-
-		return $apc;
-	};
-
 	foreach (func_get_args() as $array) {
 		$apc = [];
 		foreach ($array as $key => $values) {

@@ -1,17 +1,16 @@
 export
 
-PHP ?= 5.6
+PHP ?= 7.2
 JOBS ?= 2
 PHP_MIRROR ?= http://us2.php.net/distributions/
 TMPDIR ?= /tmp
 
-tmpnam := $(TMPDIR)/php-$(PHP)-$(shell env |grep -E '^with_|^enable_' | tr -c '[a-zA-Z_]' -)
 makdir := $(dir $(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST)))
 
-ifdef TRAVIS_JOB_NUMBER
-prefix ?= $(HOME)/job-$(TRAVIS_JOB_NUMBER)
+ifdef TRAVIS
+prefix ?= $(HOME)/build/php-$(PHP)-$(shell env |grep -E '^with_|^enable_' | tr -c '[a-zA-Z_]' -)
 else
-prefix ?= $(tmpnam)
+prefix ?= $(TMPDIR)/php-$(PHP)-$(shell env |grep -E '^with_|^enable_' | tr -c '[a-zA-Z_]' -)
 endif
 exec_prefix ?= $(prefix)
 bindir = $(exec_prefix)/bin
@@ -37,7 +36,7 @@ PECL_EXTENSION ?= $(word 1,$(PECL_WORDS))
 PECL_SONAME ?= $(if $(word 2,$(PECL_WORDS)),$(word 2,$(PECL_WORDS)),$(PECL_EXTENSION))
 PECL_VERSION ?= $(word 3,$(PECL_WORDS))
 PECL_INI = $(with_config_file_scan_dir)/pecl.ini
-PECL_DIR := $(if $(filter ext ext%, $(MAKECMDGOALS)), $(curdir), $(srcdir)/pecl-$(PECL_EXTENSION))
+PECL_DIR := $(if $(filter ext ext%, $(MAKECMDGOALS)), $(curdir), $(srcdir)/pecl-$(PECL_EXTENSION)-$(PECL_VERSION))
 
 #PHP_VERSION_MAJOR = $(firstword $(subst ., ,$(PHP)))
 
@@ -59,10 +58,10 @@ all: php
 
 .PHONY: versions
 versions: $(PHP_RELEASES)
-	grep "^$(PHP)" $<
+	grep "^$(PHP)" $< | cut -f1-2
 
 $(PHP_RELEASES): $(makdir)/php-version-url-dist.php $(makdir)/php-version-url-qa.php | $(srcdir)
-	printf "master\tmaster\tgit clone --depth 1 -b master https://github.com/php/php-src php-master && cd php-master && ./buildconf\n" >$@
+	cd $(makdir) && printf "master\tmaster\t%s/fetch-master.sh\n" $$(pwd) >$@
 	curl -Ss "http://php.net/releases/index.php?json&version=7&max=-1" | $(makdir)/php-version-url-dist.php >>$@
 	curl -Ss "http://php.net/releases/index.php?json&version=5&max=-1" | $(makdir)/php-version-url-dist.php >>$@
 	curl -Ss "http://qa.php.net/api.php?type=qa-releases&format=json"  | $(makdir)/php-version-url-qa.php   >>$@
@@ -90,6 +89,7 @@ php: check $(bindir)/php | $(PECL_INI)
 		fi \
 	done
 
+.PHONY: $(srcdir)/php-master/configure
 $(srcdir)/php-$(PHP_VERSION)/configure: | $(PHP_RELEASES)
 	cd $(srcdir) && awk -F "\t" '/^$(PHP)\t/{exit system($$3)}' <$|
 
@@ -100,7 +100,7 @@ $(srcdir)/php-$(PHP_VERSION)/sapi/cli/php: $(srcdir)/php-$(PHP_VERSION)/Makefile
 	cd $(srcdir)/php-$(PHP_VERSION) && make -j $(JOBS) || make
 
 $(bindir)/php: $(srcdir)/php-$(PHP_VERSION)/sapi/cli/php | $(PHP_RELEASES)
-	cd $(srcdir)/php-$(PHP_VERSION) && make install
+	cd $(srcdir)/php-$(PHP_VERSION) && make install INSTALL=install
 
 $(srcdir) $(extdir) $(with_config_file_scan_dir):
 	mkdir -p $@
@@ -122,12 +122,20 @@ pecl-rm:
 $(PECL_INI): | $(with_config_file_scan_dir)
 	touch $@
 
+.PHONY: $(srcdir)/pecl-$(PECL_EXTENSION)-master/config.m4
 $(PECL_DIR)/config.m4:
-	if test -z "$(PECL_VERSION)" || expr + "$(PECL_VERSION)" : "[[:digit:]]\.[[:digit:]]"; then \
-		mkdir -p $(PECL_DIR); \
-		curl -Ss $(PECL_MIRROR)/$(PECL_EXTENSION)$(if $(PECL_VERSION),/$(PECL_VERSION)) | tar xz --strip-components 1 -C $(PECL_DIR); \
+	if test "$(PECL_VERSION)" = "master"; then \
+		if test -d $(PECL_DIR); then \
+			cd $(PECL_DIR); \
+			git pull; \
+		else \
+			git clone -b $(PECL_VERSION) \
+				$$(dirname $$(git remote get-url $$(git remote)))/$(PECL_EXTENSION) $(PECL_DIR); \
+		fi; \
 	else \
-		git clone -b $(PECL_VERSION) $$(dirname $$(git remote get-url $$(git remote)))/$(PECL_EXTENSION) $(PECL_DIR); \
+		mkdir -p $(PECL_DIR); \
+		curl -Ss $(PECL_MIRROR)/$(PECL_EXTENSION)$(if $(PECL_VERSION),/$(PECL_VERSION)) \
+			| tar xz --strip-components 1 -C $(PECL_DIR); \
 	fi
 
 $(PECL_DIR)/configure: $(PECL_DIR)/config.m4
