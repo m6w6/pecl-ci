@@ -75,6 +75,7 @@ clean:
 .PHONY: check
 check: $(PHP_RELEASES)
 	@if test -z "$(PHP)"; then echo "No php version specified, e.g. PHP=5.6"; exit 1; fi
+	if test -d $(srcdir)/php-$(PHP_VERSION)/.git; then cd $(srcdir)/php-$(PHP_VERSION)/; git pull; fi
 
 .PHONY: reconf
 reconf: check $(srcdir)/php-$(PHP_VERSION)/configure
@@ -89,7 +90,6 @@ php: check $(bindir)/php | $(PECL_INI)
 		fi \
 	done
 
-.PHONY: $(srcdir)/php-master/configure
 $(srcdir)/php-$(PHP_VERSION)/configure: | $(PHP_RELEASES)
 	cd $(srcdir) && awk -F "\t" '/^$(PHP)\t/{exit system($$3)}' <$|
 
@@ -100,7 +100,7 @@ $(srcdir)/php-$(PHP_VERSION)/sapi/cli/php: $(srcdir)/php-$(PHP_VERSION)/Makefile
 	cd $(srcdir)/php-$(PHP_VERSION) && make -j $(JOBS) || make
 
 $(bindir)/php: $(srcdir)/php-$(PHP_VERSION)/sapi/cli/php | $(PHP_RELEASES)
-	cd $(srcdir)/php-$(PHP_VERSION) && make install INSTALL=install
+	cd $(srcdir)/php-$(PHP_VERSION) && make -j $(JOBS) install INSTALL=install
 
 $(srcdir) $(extdir) $(with_config_file_scan_dir):
 	mkdir -p $@
@@ -110,6 +110,7 @@ $(srcdir) $(extdir) $(with_config_file_scan_dir):
 .PHONY: pecl-check
 pecl-check:
 	@if test -z "$(PECL)"; then echo "No pecl extension specified, e.g. PECL=pecl_http:http"; exit 1; fi
+	if test -d $(PECL_DIR)/.git; then cd $(PECL_DIR)/; git pull; fi
 
 .PHONY: pecl-clean
 pecl-clean:
@@ -122,7 +123,6 @@ pecl-rm:
 $(PECL_INI): | $(with_config_file_scan_dir)
 	touch $@
 
-.PHONY: $(srcdir)/pecl-$(PECL_EXTENSION)-master/config.m4
 $(PECL_DIR)/config.m4:
 	if test "$(PECL_VERSION)" = "master"; then \
 		if test -d $(PECL_DIR); then \
@@ -148,7 +148,7 @@ $(PECL_DIR)/.libs/$(PECL_SONAME).so: $(PECL_DIR)/Makefile
 	cd $(PECL_DIR) && make -j $(JOBS) || make
 
 $(extdir)/$(PECL_SONAME).so: $(PECL_DIR)/.libs/$(PECL_SONAME).so $(extdir)
-	cd $(PECL_DIR) && make install
+	cd $(PECL_DIR) && make -j $(JOBS) install INSTALL=install
 
 .PHONY: pecl
 pecl: pecl-check php $(extdir)/$(PECL_SONAME).so | $(PECL_INI)
