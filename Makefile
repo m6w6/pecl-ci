@@ -79,7 +79,7 @@ check: $(PHP_RELEASES)
 
 .PHONY: reconf
 reconf: check $(srcdir)/php-$(PHP_VERSION)/configure
-	cd $(srcdir)/php-$(PHP_VERSION) && ./configure --cache-file=config.cache --prefix=$(prefix)
+	cd $(srcdir)/php-$(PHP_VERSION) && ./configure --cache-file=config.cache --prefix=$(prefix) && rm -f sapi/cli/php
 
 .PHONY: php
 php: check $(bindir)/php | $(PECL_INI)
