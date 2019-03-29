@@ -1,8 +1,8 @@
 export
 
-PHP ?= 7.2
+PHP ?= 7.3
 JOBS ?= 2
-PHP_MIRROR ?= http://us2.php.net/distributions/
+PHP_MIRROR ?= http://php.net/distributions/
 TMPDIR ?= /tmp
 
 makdir := $(dir $(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST)))
