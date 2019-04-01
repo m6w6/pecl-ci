@@ -39,13 +39,16 @@ if (isset($by_minor[$version])) {
 		print("5.6.33\n");
 		break;
 	case "7.0":
-		print("7.0.27\n");
+		print("7.0.33\n");
 		break;
 	case "7.1":
-		print("7.1.14\n");
+		print("7.1.27\n");
 		break;
 	case "7.2":
-		print("7.2.2\n");
+		print("7.2.16\n");
+		break;
+	case "7.3":
+		print("7.3.3\n");
 		break;
 	case "master":
 		print("master\n");

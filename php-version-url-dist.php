@@ -25,6 +25,6 @@ if (!empty($versions) && !isset($versions["error"])) {
 }
 
 foreach ($by_minor as $v => $r) {
-	printf("%s\t%s\tcurl -sS %s%s | tar xj\n", $v, $r, $mirror,
+	printf("%s\t%s\tcurl -sSL %s%s | tar xj\n", $v, $r, $mirror,
 			$versions[$r]["source"][0]["filename"]);
 }

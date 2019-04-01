@@ -2,7 +2,7 @@ export
 
 PHP ?= 7.3
 JOBS ?= 2
-PHP_MIRROR ?= http://php.net/distributions/
+PHP_MIRROR ?= https://php.net/distributions/
 TMPDIR ?= /tmp
 
 makdir := $(dir $(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST)))
@@ -62,9 +62,9 @@ versions: $(PHP_RELEASES)
 
 $(PHP_RELEASES): $(makdir)/php-version-url-dist.php $(makdir)/php-version-url-qa.php | $(srcdir)
 	cd $(makdir) && printf "master\tmaster\t%s/fetch-master.sh\n" $$(pwd) >$@
-	curl -Ss "http://php.net/releases/index.php?json&version=7&max=-1" | $(makdir)/php-version-url-dist.php >>$@
-	curl -Ss "http://php.net/releases/index.php?json&version=5&max=-1" | $(makdir)/php-version-url-dist.php >>$@
-	curl -Ss "http://qa.php.net/api.php?type=qa-releases&format=json"  | $(makdir)/php-version-url-qa.php   >>$@
+	curl -sSL "https://php.net/releases/index.php?json&version=7&max=-1" | $(makdir)/php-version-url-dist.php >>$@
+	curl -sSL "https://php.net/releases/index.php?json&version=5&max=-1" | $(makdir)/php-version-url-dist.php >>$@
+	curl -sSL "https://qa.php.net/api.php?type=qa-releases&format=json"  | $(makdir)/php-version-url-qa.php   >>$@
 
 ## -- PHP
 

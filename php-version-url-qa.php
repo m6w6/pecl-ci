@@ -25,7 +25,7 @@ if (!empty($versions) && !isset($versions["error"]) && isset($versions["releases
 }
 
 foreach ($by_minor as $v => $r) {
-	printf("%s\t%s\tcurl -sS %s | tar xj\n", $v, 
+	printf("%s\t%s\tcurl -sSL %s | tar xj\n", $v, 
 			$versions["releases"][$r]["version"], 
 			$versions["releases"][$r]["files"]["bz2"]["path"]);
 }
