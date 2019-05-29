@@ -134,7 +134,7 @@ $(PECL_DIR)/config.m4:
 		fi; \
 	else \
 		mkdir -p $(PECL_DIR); \
-		curl -Ss $(PECL_MIRROR)/$(PECL_EXTENSION)$(if $(PECL_VERSION),/$(PECL_VERSION)) \
+		curl -LSs $(PECL_MIRROR)/$(PECL_EXTENSION)$(if $(PECL_VERSION),/$(PECL_VERSION)) \
 			| tar xz --strip-components 1 -C $(PECL_DIR); \
 	fi
 
