@@ -14,7 +14,7 @@ prefix ?= $(TMPDIR)/php-$(PHP)-$(shell env |grep -E '^with_|^enable_' | tr -c '[
 endif
 exec_prefix ?= $(prefix)
 bindir = $(exec_prefix)/bin
-srcdir := $(prefix)/src
+srcdir = $(prefix)/src
 ifdef TRAVIS_BUILD_DIR
 curdir ?= $(TRAVIS_BUILD_DIR)
 else
