@@ -75,6 +75,7 @@ clean:
 .PHONY: check
 check: $(PHP_RELEASES)
 	@if test -z "$(PHP)"; then echo "No php version specified, e.g. PHP=5.6"; exit 1; fi
+	@if test -z "$(PHP_VERSION)"; then echo "No PHP version akin to $(PHP) available"; exit 1; fi
 	if test -d $(srcdir)/php-$(PHP_VERSION)/.git; then cd $(srcdir)/php-$(PHP_VERSION)/; git pull; fi
 
 .PHONY: reconf
