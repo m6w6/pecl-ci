@@ -130,8 +130,7 @@ $(PECL_DIR)/config.m4:
 			cd $(PECL_DIR); \
 			git pull; \
 		else \
-			git clone -b $(PECL_VERSION) \
-				$$(dirname $$(git remote get-url $$(git remote)))/$(PECL_EXTENSION) $(PECL_DIR); \
+			git clone https://github.com/$(PECL_EXTENSION) $(PECL_DIR); \
 		fi; \
 	else \
 		mkdir -p $(PECL_DIR); \
