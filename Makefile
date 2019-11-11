@@ -168,7 +168,10 @@ ext: pecl-check pecl
 .PHONY: test
 test: php
 	REPORT_EXIT_STATUS=1 $(bindir)/php run-tests.php -q -p $(bindir)/php --set-timeout 300 --show-diff tests
-
+.PHONY: pecl-test
+pecl-test: php
+	REPORT_EXIT_STATUS=1 $(bindir)/php $(prefix)/lib/php/build/run-tests.php -q -p $(bindir)/php --set-timeout 300 --show-diff $(PECL_DIR)/tests
+	
 pharext/%: $(PECL_INI) php | $(srcdir)/../%.ext.phar
 	for phar in $|; do $(bindir)/php $$phar --prefix=$(prefix) --ini=$(PECL_INI); done
 
