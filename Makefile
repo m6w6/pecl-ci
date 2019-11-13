@@ -165,11 +165,13 @@ ext: pecl-check pecl
 	$(makdir)/check-packagexml.php package.xml
 
 .PHONY: test
+test: TESTS ?= tests
 test: php
-	REPORT_EXIT_STATUS=1 $(bindir)/php run-tests.php -q -p $(bindir)/php --set-timeout 300 --show-diff tests
+	REPORT_EXIT_STATUS=1 $(bindir)/php run-tests.php -q -p $(bindir)/php --set-timeout 300 --show-diff $(TESTS)
 .PHONY: pecl-test
+pecl-test: TESTS ?= $(PECL_DIR)/tests
 pecl-test: php
-	REPORT_EXIT_STATUS=1 $(bindir)/php $(prefix)/lib/php/build/run-tests.php -q -p $(bindir)/php --set-timeout 300 --show-diff $(PECL_DIR)/tests
+	REPORT_EXIT_STATUS=1 $(bindir)/php $(prefix)/lib/php/build/run-tests.php -q -p $(bindir)/php --set-timeout 300 --show-diff $(TESTS)
 	
 pharext/%: $(PECL_INI) php | $(srcdir)/../%.ext.phar
 	for phar in $|; do $(bindir)/php $$phar --prefix=$(prefix) --ini=$(PECL_INI); done
