@@ -1,6 +1,6 @@
 export
 
-PHP ?= 7.3
+PHP ?= 7.4
 JOBS ?= 2
 PHP_MIRROR ?= https://php.net/distributions/
 TMPDIR ?= /tmp
@@ -62,6 +62,7 @@ versions: $(PHP_RELEASES)
 
 $(PHP_RELEASES): $(makdir)/php-version-url-dist.php $(makdir)/php-version-url-qa.php | $(srcdir)
 	cd $(makdir) && printf "master\tmaster\t%s/fetch-master.sh\n" $$(pwd) >$@
+	curl -sSL "https://php.net/releases/index.php?json&version=8&max=-1" | $(makdir)/php-version-url-dist.php >>$@
 	curl -sSL "https://php.net/releases/index.php?json&version=7&max=-1" | $(makdir)/php-version-url-dist.php >>$@
 	curl -sSL "https://php.net/releases/index.php?json&version=5&max=-1" | $(makdir)/php-version-url-dist.php >>$@
 	curl -sSL "https://qa.php.net/api.php?type=qa-releases&format=json"  | $(makdir)/php-version-url-qa.php   >>$@
