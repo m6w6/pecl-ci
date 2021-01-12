@@ -1,10 +1,6 @@
 export
 
-<<<<<<< HEAD
-PHP ?= 7.4
-=======
 PHP ?= 8.0
->>>>>>> 3cab5c6 (support for github workflow steps)
 JOBS ?= 2
 PHP_MIRROR ?= https://php.net/distributions/
 TMPDIR ?= /tmp
