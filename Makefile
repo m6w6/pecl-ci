@@ -9,7 +9,7 @@ mkfile := $(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST))
 makdir := $(dir $(mkfile))
 
 ifeq (,$(findstring printenv,$(MAKECMDGOALS)))
-mkargs := $(shell $(MAKE) -f $(mkfile) printenv | sed -n -e 's,with_,,gp' -e 's,enable_,,gp' | tr -c '[a-zA-Z_]' -)
+mkargs := $(shell $(MAKE) -f $(mkfile) printenv | sed -n -e '/=no$$/ d; s/=yes$$//' -e 's,with_,,gp' -e 's,enable_,,gp' | tr -c '[a-zA-Z_]' -)
 endif
 
 prefix ?= $(TMPDIR)/php-$(PHP)-$(mkargs)
