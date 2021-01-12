@@ -1,26 +1,27 @@
 export
 
+<<<<<<< HEAD
 PHP ?= 7.4
+=======
+PHP ?= 8.0
+>>>>>>> 3cab5c6 (support for github workflow steps)
 JOBS ?= 2
 PHP_MIRROR ?= https://php.net/distributions/
 TMPDIR ?= /tmp
 
-makdir := $(dir $(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST)))
+mkfile := $(word $(words $(MAKEFILE_LIST)),$(MAKEFILE_LIST))
+makdir := $(dir $(mkfile))
 
-ifdef TRAVIS
-prefix ?= $(HOME)/cache/php-$(PHP)-$(shell env |grep -E '^with_|^enable_' | tr -c '[a-zA-Z_]' -)
-else
-prefix ?= $(TMPDIR)/php-$(PHP)-$(shell env |grep -E '^with_|^enable_' | tr -c '[a-zA-Z_]' -)
+ifeq (,$(findstring printenv,$(MAKECMDGOALS)))
+mkargs := $(shell $(MAKE) -f $(mkfile) printenv | sed -n -e 's,with_,,gp' -e 's,enable_,,gp' | tr -c '[a-zA-Z_]' -)
 endif
+
+prefix ?= $(TMPDIR)/php-$(PHP)-$(mkargs)
 exec_prefix ?= $(prefix)
 bindir = $(exec_prefix)/bin
 srcdir = $(prefix)/src
-ifdef TRAVIS_BUILD_DIR
-curdir ?= $(TRAVIS_BUILD_DIR)
-else
 # CURDIR is a make builtin
 curdir ?= $(CURDIR)
-endif
 
 enable_maintainer_zts ?= no
 enable_debug ?= no
@@ -55,6 +56,12 @@ CPPCHECK_ARGS ?= -v -j $(JOBS) --std=$(CPPCHECK_STD) --enable=$(CPPCHECK_ENABLE)
 
 .PHONY: all
 all: php
+
+.PHONY: printenv
+printenv:
+	@env | grep -E 'prefix=|dir=' | grep -v config_file_scan_dir | sort
+	@env | grep -E '^PHP|^PECL' | sort
+	@env | grep -E '^with_|^enable_' | grep -Ev 'php_config|config_file_scan_dir' | sort
 
 .PHONY: versions
 versions: $(PHP_RELEASES)
@@ -112,7 +119,7 @@ $(srcdir) $(extdir) $(with_config_file_scan_dir):
 .PHONY: pecl-check
 pecl-check:
 	@if test -z "$(PECL)"; then echo "No pecl extension specified, e.g. PECL=pecl_http:http"; exit 1; fi
-	if test -d $(PECL_DIR)/.git; then cd $(PECL_DIR)/; git pull; fi
+	if test -d $(PECL_DIR)/.git; then cd $(PECL_DIR)/; git pull || test -z "$$CI"; fi
 
 .PHONY: pecl-clean
 pecl-clean:

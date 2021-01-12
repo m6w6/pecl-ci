@@ -1,12 +1,12 @@
-# travis-pecl
+# pecl-ci
 
-These few lines of code support building and testing PHP extensions on Travis-CI.
+These few lines of code support building and testing PHP extensions on CI.
 
 ## Usage
 
 First, we'll add this repo to our extension as submodule:
 
-    git submodule add -n travis-pecl https://github.com/m6w6/travis-pecl.git travis/pecl
+    git submodule add -n pecl-ci https://github.com/m6w6/pecl-ci.git scripts/ci
     git submodule update --init
 
 Let's build a `.travis.yml`by example. We'll use a simple PHP script, e.g. `gen_travis_yml.php`,
@@ -33,7 +33,7 @@ which will generate the configuration for us:
     <?php
     
     # instantiate the generator
-    $gen = include "travis/pecl/gen-matrix.php";
+    $gen = include "scripts/ci/gen-matrix.php";
     
     # generate the matrix
     $env = $gen([
@@ -58,15 +58,15 @@ which will generate the configuration for us:
     
     before_script:
       # build the matrix' PHP version
-      - make -f travis/pecl/Makefile php
+      - make -f scripts/ci/Makefile php
       # build the extension, the PECL variable expects the extension name 
       # and optionally the soname and a specific version of the extension
       # separeated by double colon, e.g. PECL=myext:ext:1.7.5
-      - make -f travis/pecl/Makefile ext PECL=myext
+      - make -f scripts/ci/Makefile ext PECL=myext
     
     script:
       # run the PHPT test suite
-      - make -f travis/pecl/Makefile test
+      - make -f scripts/ci/Makefile test
     
 
 That's it, more TBD.
