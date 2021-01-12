@@ -115,7 +115,6 @@ $(srcdir) $(extdir) $(with_config_file_scan_dir):
 .PHONY: pecl-check
 pecl-check:
 	@if test -z "$(PECL)"; then echo "No pecl extension specified, e.g. PECL=pecl_http:http"; exit 1; fi
-	if test -d $(PECL_DIR)/.git; then cd $(PECL_DIR)/; git pull || test -z "$$CI"; fi
 
 .PHONY: pecl-clean
 pecl-clean:
