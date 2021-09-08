@@ -91,7 +91,11 @@ php: check $(bindir)/php | $(PECL_INI)
 	-for EXT_SONAME in $(extdir)/*.so; do \
 		EXT_SONAME=$$(basename $$EXT_SONAME); \
 		if test "$$EXT_SONAME" != "*.so" && ! grep -q extension=$$EXT_SONAME $(PECL_INI); then \
-			echo extension=$$EXT_SONAME >> $(PECL_INI); \
+			if test "$$EXT_SONAME" = "opcache.so"; then \
+				echo zend_extension=$$EXT_SONAME >> $(PECL_INI); \
+			else \
+				echo extension=$$EXT_SONAME >> $(PECL_INI); \
+			fi; \
 		fi \
 	done
 
@@ -175,7 +179,7 @@ test: php
 pecl-test: TESTS ?= $(PECL_DIR)/tests
 pecl-test: php
 	REPORT_EXIT_STATUS=1 $(bindir)/php $(prefix)/lib/php/build/run-tests.php -q -p $(bindir)/php --set-timeout 300 --show-diff $(TESTS)
-	
+
 pharext/%: $(PECL_INI) php | $(srcdir)/../%.ext.phar
 	for phar in $|; do $(bindir)/php $$phar --prefix=$(prefix) --ini=$(PECL_INI); done
 
